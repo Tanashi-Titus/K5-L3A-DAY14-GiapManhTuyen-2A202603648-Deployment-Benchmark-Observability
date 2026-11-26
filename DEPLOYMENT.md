@@ -12,7 +12,7 @@ Railway — project `exquisite-embrace`, environment `production`.
 
 The Railway deployment is **Online** and CP6 public checks passed after fixing the Redis variable. The agent's `REDIS_URL` is built from the Redis service's private `REDISUSER`, `REDISPASSWORD`, `REDISHOST`, and `REDISPORT` variables; the credentials remain stored as Railway variable references and are not committed here.
 
-The public smoke check was repeated on 2026-11-26: `GET /health` returned **200**, `GET /ready` returned **200**, and `POST /ask` without a key returned **401**. The authenticated `POST /ask` returned **200** on 2026-11-25 after the Redis fix. The source now uses `ENVIRONMENT` when configured, then falls back to Railway's `RAILWAY_ENVIRONMENT_NAME`; local runs still default to `development`. The currently running deployment reports `environment: development` until this source change is deployed.
+After setting the Railway service variable `ENVIRONMENT=production` and redeploying on 2026-11-26, `GET /health` reports `status: ok` and `environment: production`; `GET /ready` reports `ready: true`. The fresh public checks returned **200**, **200**, and **401** for `/health`, `/ready`, and `POST /ask` without a key. The authenticated `POST /ask` returned **200** on 2026-11-25 after the Redis fix. The source uses explicit `ENVIRONMENT` first, then Railway's `RAILWAY_ENVIRONMENT_NAME`; local runs still default to `development`.
 
 ## Required verification after correcting the Railway variable
 
@@ -29,6 +29,7 @@ curl -sS -o /dev/null -w '%{http_code}\n' -X POST "$BASE/ask" -H 'Content-Type: 
 
 - `AGENT_API_KEY`: set in Railway service variables; keep secret.
 - `REDIS_URL`: configured on the Railway agent service from private Redis service variables; do not copy the credential value into this repository.
+- `ENVIRONMENT`: set to `production` on the Railway agent service.
 - `PORT`: supplied by Railway and consumed by the container command.
 
 ## Screenshots
