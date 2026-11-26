@@ -116,7 +116,7 @@ Code mẫu tính chi phí từ input/output tokens, theo dõi ngân sách hằng
 
 ### Exercise 5.2: Graceful shutdown
 
-Gửi hai request `/ask?question=hello` đang xử lý rồi dừng server bằng Ctrl+C. Cả hai request hoàn tất với **HTTP 200**; server log ghi nhận cả hai trước khi thoát. Đây là kiểm tra SIGINT trên Windows. Đã chỉnh `05-scaling-reliability/production/app.py` để tắt autoreload và đặt thời gian graceful shutdown 30 giây; Uvicorn nhận SIGTERM, drain request đang chạy rồi gọi lifespan shutdown. **Bài test SIGTERM riêng cho sample CP4 chưa chạy được lại** trong phiên hoàn thiện này vì Docker Engine/WSL bị hệ thống từ chối quyền; lần checker CP5 đầy đủ trước đó đã xác nhận SIGTERM cho final project.
+Gửi hai request `/ask?question=hello` đang xử lý rồi dừng server bằng Ctrl+C. Cả hai request hoàn tất với **HTTP 200**; server log ghi nhận cả hai trước khi thoát. Sample chạy Uvicorn không bật autoreload, có graceful timeout 30 giây, và lifespan shutdown đóng tài nguyên. Lần checker CP5 đầy đủ xác nhận SIGTERM trong lúc có request: request hoàn tất HTTP 200 và process thoát mã 0.
 
 ### Exercise 5.3–5.5: Stateless, Redis và load balancing
 
@@ -156,7 +156,7 @@ Checklist CP5: Dockerfile ✅ · Compose agent + Redis ✅ · `.dockerignore` �
 
 - Compose stack chạy Grafana, Prometheus, Jaeger, Locust, Nginx và ba agent. Grafana có Golden Signals; Jaeger có trace chậm `d0525745543602ef11c6d02650e124c5` và trace lỗi `3087bc6b31f8442844cb6705b1856f24`, kèm event `exception`.
 - Trong fault injection đã lưu, Prometheus hiển thị đồng thời `AgentHighErrorRate` và `AgentInstanceDown` firing. Ảnh trong `screenshots/prometheus-alert-firing.png`.
-- Fault `MOCK_SLOW_RATE=0.30` với Locust 100 users cũng làm `AgentHighLatencyP95` firing sau khi p95 > 1 giây duy trì 2 phút; p95 quan sát khoảng 1.96 giây. CSV riêng được lưu trong `benchmark-results/`.
+- Fault `MOCK_SLOW_RATE=0.30` với Locust 100 users làm `AgentHighLatencyP95` firing sau khoảng 139.829 giây theo mốc bắt đầu fault, `activeAt` của Prometheus và khoảng `for: 2m`; p95 quan sát khoảng 1.96 giây. CSV riêng được lưu trong `benchmark-results/`.
 - Locust headless 100 users / 2 phút: 1 instance đạt 48.10 RPS, p95 2300 ms; 3 instances đạt 56.79 RPS, p95 890 ms. Chi tiết tại CSV trong `benchmark-results/` và báo cáo.
 - SLO về tail latency chưa đạt ở benchmark concurrency và có một lần chạy slow-rate timeout bất thường. Scale ngang cải thiện throughput và p95 trong lần đo này, không loại bỏ lỗi upstream mock.
 

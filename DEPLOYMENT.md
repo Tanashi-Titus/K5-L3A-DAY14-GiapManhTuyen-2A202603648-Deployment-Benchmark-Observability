@@ -36,4 +36,6 @@ curl -sS -o /dev/null -w '%{http_code}\n' -X POST "$BASE/ask" -H 'Content-Type: 
 
 - `screenshots/dashboard.png`: Railway networking page showing the public domain and port.
 - `screenshots/running.png`: Railway project view showing the agent and Redis online.
-- `screenshots/test.png`: visual summary of the HTTP codes verified above. The authenticated request result is from 2026-11-25; the other three were repeated on 2026-11-26.
+- `screenshots/test.png`: live Swagger response for `POST /ask` without an API key, HTTP 401 (2026-11-26).
+- `screenshots/health-live.png` and `screenshots/ready-live.png`: live public endpoint responses captured on 2026-11-26.
+- `screenshots/test-summary.png`: four-check overview; the authenticated request returned HTTP 200 on 2026-11-25, and the other three status codes were rechecked on 2026-11-26.

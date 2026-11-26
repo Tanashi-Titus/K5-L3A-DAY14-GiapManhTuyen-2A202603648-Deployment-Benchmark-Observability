@@ -63,19 +63,19 @@
 
 ### 4.2 Thí nghiệm phá hệ thống
 
-| # | Thay đổi | Alert | Thời gian tới firing | Tín hiệu |
+| # | Thay đổi | Alert | Mốc firing / độ trễ | Tín hiệu |
 |---|---|---|---|---|
-| A | `MOCK_ERROR_RATE=0.30` | `AgentHighErrorRate` firing | Rule yêu cầu duy trì 1 phút; thời điểm bắt đầu cấu hình không được ghi chính xác. | Error rate `/ask` |
-| B | `MOCK_SLOW_RATE=0.30`, Locust 100 users trong 2 phút | `AgentHighLatencyP95` firing | Khoảng 140 giây từ lúc cấu hình; Prometheus bắt đầu pending lúc `2026-11-25T16:09:27.402Z`, cần duy trì thêm 2 phút theo rule. | p95 `/ask` khoảng 1.96 s; alert firing |
+| A | `MOCK_ERROR_RATE=0.30` | `AgentHighErrorRate` firing | Prometheus `activeAt=2026-11-25T15:59:12.401Z`; rule `for: 1m` → firing lúc khoảng `16:00:12.401Z` UTC. | Error rate `/ask` |
+| B | `MOCK_SLOW_RATE=0.30`, Locust 100 users trong 2 phút | `AgentHighLatencyP95` firing | **139.829 giây:** fault bắt đầu `2026-11-25T16:09:07.573Z`; Prometheus `activeAt=16:09:27.402Z`; rule `for: 2m` → firing khoảng `16:11:27.402Z`. | p95 `/ask` khoảng 1.96 s; alert firing |
 | C | LLM_MODEL=mock-llm-large, Locust 100 users trong 3 phút | AgentHighLatencyP95 firing; cost burn alert đã bắt đầu từ B | Không tách được cho C: alert cost đã firing trước khi đổi model; latency alert xác nhận trong lượt C. | p95 2700 ms; 86/7099 lỗi /ask (1.21%); 77 HTTP 503, 9 HTTP 502; 1 lỗi health 502 |
-| D | Pause một agent replica | `AgentInstanceDown` và `AgentHighErrorRate` firing | Rule giữ điều kiện down 30 giây; elapsed chính xác không lưu. | Instance health, Prometheus Alerts |
-| E | `AGENT_VERSION=v1` | Không chạy riêng trong phiên có evidence | — | Accuracy eval theo version |
+| D | Pause một agent replica | `AgentInstanceDown` và `AgentHighErrorRate` firing | `AgentInstanceDown activeAt=2026-11-25T15:58:57.401Z`; rule `for: 30s` → firing khoảng `15:59:27.401Z` UTC. | Instance health, Prometheus Alerts |
+| E | `AGENT_VERSION=v1` | Health/latency/error alerts không đo chất lượng câu trả lời | Golden eval phát hiện regression: v1 **1/23**, v2 sau sửa KB **23/23**. | Quality gate theo version |
 
-Screenshot Prometheus cho thấy `AgentHighErrorRate` và `AgentInstanceDown` cùng firing. `activeAt` tương ứng là `2026-11-25T15:59:12.401Z` và `2026-11-25T15:58:57.401Z`; không có timestamp thao tác A/D bắt đầu để tính elapsed chính xác. Bắt đầu fault B lúc `2026-11-25T16:09:07.573Z`; `AgentHighLatencyP95` đã được xác nhận firing sau khi điều kiện p95 > 1 s duy trì đủ 2 phút. Với C (LLM_MODEL=mock-llm-large, 100 users / 3 phút), Locust ghi 7,099 request /ask, 86 lỗi (1.21%), median 600 ms, average 1,021 ms, p95 2,700 ms, p99 5,300 ms, max 7,022 ms và 39.63 RPS. Có 77 lỗi 503 và 9 lỗi 502 trên /ask; /health có 1 lỗi 502 trong 729 request. AgentHighLatencyP95 firing trong lượt này. Cost burn alert có từ bài B, nên không quy thời điểm firing cho model lớn.
+Screenshot Prometheus cho thấy `AgentHighErrorRate` và `AgentInstanceDown` cùng firing. Từ các mốc `activeAt` và khoảng `for` trong rule, A firing khoảng `2026-11-25T16:00:12.401Z`, D firing khoảng `15:59:27.401Z`; fault B firing sau khoảng **139.829 giây**. Với C (`LLM_MODEL=mock-llm-large`, 100 users / 3 phút), Locust ghi 7,099 request `/ask`, 86 lỗi (1.21%), median 600 ms, average 1,021 ms, p95 2,700 ms, p99 5,300 ms, max 7,022 ms và 39.63 RPS. Có 77 lỗi 503 và 9 lỗi 502 trên `/ask`; `/health` có 1 lỗi 502 trong 729 request. `AgentHighLatencyP95` firing trong lượt này. Cost burn alert có từ bài B, nên không quy thời điểm firing cho model lớn.
 
 Các mã 502 ở Scenario C được ghi trong lượt chaos/load test đó; chúng không phản ánh trạng thái Railway sau khi sửa `REDIS_URL`. Kiểm tra CP6 public sau redeploy trả `/health` 200 và `/ready` 200.
 
-Để phát hiện regression E, gắn `agent_version` vào metrics, chạy golden eval trước rollout, so sánh accuracy/cost bằng canary và chặn deploy nếu quality gate fail.
+**Phân tích thí nghiệm E:** health, latency và error-rate alert không đo accuracy; golden eval/quality gate phát hiện regression giữa v1 (1/23) và v2 đã sửa (23/23). Khi rollout, gắn `agent_version` vào metrics, chạy golden eval trước rollout, so sánh accuracy/cost bằng canary và chặn deploy nếu quality gate fail.
 
 ### 4.3 Debug bằng trace
 

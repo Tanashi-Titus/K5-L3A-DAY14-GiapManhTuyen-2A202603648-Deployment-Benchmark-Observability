@@ -39,6 +39,7 @@ K5-L3A-DAY14-HoVaTen-MSSV-Deployment-Benchmark-Observability/
 │   └── scale_3_stats.csv
 ├── screenshots/
 │   ├── dashboard.png  running.png  test.png             # Part 3 / 6 — deploy
+│   ├── health-live.png  ready-live.png  test-summary.png # public HTTP evidence
 │   └── grafana-dashboard.png  jaeger-slow-trace.png
 │       jaeger-error-trace.png  prometheus-alert-firing.png   # Part 7
 └── 06-lab-complete/            # Part 6 — code đã sửa hết TODO, PASS 12/12
@@ -63,7 +64,7 @@ cp -r 06-lab-complete/benchmark-observability/production/benchmark-results/. ben
 - [ ] Trong `06-lab-complete/`: `python check_production_ready.py` báo `PASS 12/12` (bản đầy đủ, có Docker).
 - [ ] `MISSION_ANSWERS.md` trả lời đủ Part 1–5, có dán output script chấm và mục AI log.
 - [ ] `DEPLOYMENT.md` có URL chạy được: `/health` và `/ready` trả 200, `/ask` không có key trả 401, có key trả 200 (4 lệnh ở CP6).
-- [ ] `BENCHMARK_REPORT.md` điền đủ; `reports/`, `benchmark-results/` và 7 ảnh trong `screenshots/` có mặt.
+- [ ] `BENCHMARK_REPORT.md` điền đủ; `reports/`, `benchmark-results/` và bộ ảnh trong `screenshots/` có mặt.
 - [ ] Số trong `BENCHMARK_REPORT.md` khớp file JSON/CSV.
 - [ ] Không có `.env` hay secret trong repo và lịch sử commit (`git log --all --oneline -- '*.env' '.env'` không in gì).
 - [ ] Không có email, số điện thoại trong bài.
