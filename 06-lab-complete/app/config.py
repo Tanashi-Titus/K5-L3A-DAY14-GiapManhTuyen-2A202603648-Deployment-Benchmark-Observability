@@ -5,7 +5,9 @@ from dataclasses import dataclass
 @dataclass(frozen=True)
 class Settings:
     port: int = int(os.getenv("PORT", "8000"))
-    environment: str = os.getenv("ENVIRONMENT", "development")
+    environment: str = os.getenv("ENVIRONMENT") or os.getenv(
+        "RAILWAY_ENVIRONMENT_NAME", "development"
+    )
     agent_api_key: str = os.getenv("AGENT_API_KEY", "")
     redis_url: str = os.getenv("REDIS_URL", "redis://localhost:6379/0")
     rate_limit_per_minute: int = int(os.getenv("RATE_LIMIT_PER_MINUTE", "10"))

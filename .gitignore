@@ -34,3 +34,8 @@ Thumbs.db
 # ── Docker volumes (local dev) ─────────────────────��──────
 data/
 volumes/
+
+# Local benchmark process logs and console captures (JSON/CSV reports are tracked separately)
+06-lab-complete/benchmark-observability/develop/reports/agent_*.log
+06-lab-complete/benchmark-observability/develop/reports/agent_*.err
+06-lab-complete/benchmark-observability/develop/reports/load_*.txt
