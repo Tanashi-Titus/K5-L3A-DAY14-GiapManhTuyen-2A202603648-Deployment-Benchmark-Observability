@@ -217,4 +217,12 @@ def ready():
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 8000))
-    uvicorn.run(app, host="0.0.0.0", port=port, reload=True)
+    # Let the server process receive SIGTERM directly; Uvicorn's signal handler
+    # then drains in-flight requests and runs the lifespan shutdown hook.
+    uvicorn.run(
+        app,
+        host="0.0.0.0",
+        port=port,
+        reload=False,
+        timeout_graceful_shutdown=30,
+    )

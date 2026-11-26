@@ -66,7 +66,7 @@
 | # | Thay đổi | Alert | Thời gian tới firing | Tín hiệu |
 |---|---|---|---|---|
 | A | `MOCK_ERROR_RATE=0.30` | `AgentHighErrorRate` firing | Rule yêu cầu duy trì 1 phút; thời điểm bắt đầu cấu hình không được ghi chính xác. | Error rate `/ask` |
-| B | `MOCK_SLOW_RATE=0.30`, Locust 100 users trong 2 phút | `AgentHighLatencyP95` firing | Khoảng 140 giây từ lúc cấu hình; Prometheus bắt đầu pending lúc `2026-11-25T16:09:27.402Z`, cần duy trì thêm 2 phút theo rule. | p95 `/ask` khoảng 1.96 s; alert firing |
+| B | `MOCK_SLOW_RATE=0.30`, Locust 100 users trong 2 phút | `AgentHighLatencyP95` firing | **Khoảng 139.829 giây (tính từ log):** fault bắt đầu `2026-11-25T16:09:07.573Z`; Prometheus chuyển sang pending lúc `16:09:27.402Z`; rule yêu cầu giữ điều kiện thêm 120 giây. Mốc firing suy ra khoảng `16:11:27.402Z`, không phải timestamp firing được chụp trực tiếp. | p95 `/ask` khoảng 1.96 s; alert firing |
 | C | LLM_MODEL=mock-llm-large, Locust 100 users trong 3 phút | AgentHighLatencyP95 firing; cost burn alert đã bắt đầu từ B | Không tách được cho C: alert cost đã firing trước khi đổi model; latency alert xác nhận trong lượt C. | p95 2700 ms; 86/7099 lỗi /ask (1.21%); 77 HTTP 503, 9 HTTP 502; 1 lỗi health 502 |
 | D | Pause một agent replica | `AgentInstanceDown` và `AgentHighErrorRate` firing | Rule giữ điều kiện down 30 giây; elapsed chính xác không lưu. | Instance health, Prometheus Alerts |
 | E | `AGENT_VERSION=v1` | Không chạy riêng trong phiên có evidence | — | Accuracy eval theo version |
@@ -75,7 +75,7 @@ Screenshot Prometheus cho thấy `AgentHighErrorRate` và `AgentInstanceDown` c�
 
 Các mã 502 ở Scenario C được ghi trong lượt chaos/load test đó; chúng không phản ánh trạng thái Railway sau khi sửa `REDIS_URL`. Kiểm tra CP6 public sau redeploy trả `/health` 200 và `/ready` 200.
 
-Để phát hiện regression E, gắn `agent_version` vào metrics, chạy golden eval trước rollout, so sánh accuracy/cost bằng canary và chặn deploy nếu quality gate fail.
+**Phân tích thí nghiệm E:** lượt đổi `AGENT_VERSION=v1` không được chạy riêng trong phiên có evidence. Dự kiến health, latency và error-rate alert không phát hiện việc chất lượng câu trả lời giảm nếu service vẫn khỏe; golden eval/quality gate mới bắt được regression (v1 chỉ đạt 1/23 so với v2 đã sửa 23/23). Khi rollout thật, cần gắn `agent_version` vào metrics, chạy golden eval trước rollout, so sánh accuracy/cost bằng canary và chặn deploy nếu quality gate fail.
 
 ### 4.3 Debug bằng trace
 

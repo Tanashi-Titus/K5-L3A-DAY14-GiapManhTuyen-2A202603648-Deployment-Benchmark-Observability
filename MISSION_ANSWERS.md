@@ -116,7 +116,7 @@ Code mẫu tính chi phí từ input/output tokens, theo dõi ngân sách hằng
 
 ### Exercise 5.2: Graceful shutdown
 
-Gửi hai request `/ask?question=hello` đang xử lý rồi dừng server bằng Ctrl+C. Cả hai request hoàn tất với **HTTP 200**; server log ghi nhận cả hai trước khi thoát. Đây là kiểm tra SIGINT trên Windows; chưa xác nhận bài kiểm tra SIGTERM trong WSL2.
+Gửi hai request `/ask?question=hello` đang xử lý rồi dừng server bằng Ctrl+C. Cả hai request hoàn tất với **HTTP 200**; server log ghi nhận cả hai trước khi thoát. Đây là kiểm tra SIGINT trên Windows. Đã chỉnh `05-scaling-reliability/production/app.py` để tắt autoreload và đặt thời gian graceful shutdown 30 giây; Uvicorn nhận SIGTERM, drain request đang chạy rồi gọi lifespan shutdown. **Bài test SIGTERM riêng cho sample CP4 chưa chạy được lại** trong phiên hoàn thiện này vì Docker Engine/WSL bị hệ thống từ chối quyền; lần checker CP5 đầy đủ trước đó đã xác nhận SIGTERM cho final project.
 
 ### Exercise 5.3–5.5: Stateless, Redis và load balancing
 
